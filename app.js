@@ -1,59 +1,36 @@
-const http = require('http');
-const {readFileSync} = require('fs');
+const express = require('express');
 
-const homePage = readFileSync('./navbar-app/index.html');
-const homeStyles = readFileSync('./navbar-app/styles.css');
-const homeImg = readFileSync('./navbar-app/logo.svg');
-const homeLogic = readFileSync('./navbar-app/browser-app.js');
+const {products} = require('./data.js');
 
-const aboutPage = readFileSync('./about.html');
-const contactPage = readFileSync('./contact.html');
+const app = express();
 
-const server = http.createServer((req, res)=> {
-    
-    const url = req.url;
-    switch(url) {
-        case '/':  
-            res.writeHead(200, {'content-type': 'text/html'});
-            res.write(homePage);
-            res.end();
-            break;
-        case '/styles.css':  
-            res.writeHead(200, {'content-type': 'text/css'});
-            res.write(homeStyles);
-            res.end();
-            break;
-        case '/logo.svg':  
-            res.writeHead(200, {'content-type': 'image/svg+xml'});
-            res.write(homeImg);
-            res.end();
-        break;
-            case '/browser-app.js':  
-            res.writeHead(200, {'content-type': 'text/javascript'});
-            res.write(homeLogic);
-            res.end();
-            break;
+const homePage = `
+                    <h1>Home Page</h1>
+                    <a href='/api/products'>Products</a>
+`;
 
-
-
-
-
-        case '/about':
-            res.writeHead(200, {'content-type': 'text/html'});
-            res.write(aboutPage);
-            res.end();
-            break;
-        case '/contact': 
-            res.writeHead(200, {'content-type': 'text/html'});
-            res.write(contactPage);
-            res.end();
-            break;
-        default: 
-            res.writeHead(404, {'content-type': 'text/html'});
-            res.write('<h1>Page Not Found</h1>');
-            res.end();
-    };
+app.get('/', (req, res)=> {
+    res.send(homePage)
 });
 
-server.listen(5000);
-// console.log('working')
+app.get('/api/products', (req, res)=> {
+    const newProds = products.map((item)=> {
+        const {id, name} = item;
+        return {id, name};
+    });
+    res.json(newProds);
+});
+
+
+app.get('/api/products/:productID', (req, res)=> {
+    const {productID} = req.params;
+    const product = products.find((item)=> item.id === Number(productID));
+    if(!product) return res.status(404).send('<h1>Product Does Not Exist</h1>');
+    res.json(product);
+});
+
+
+
+app.listen(5000, ()=> {
+    console.log('server is listening on 5000');
+});
