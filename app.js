@@ -29,6 +29,28 @@ app.get('/api/products/:productID', (req, res)=> {
     res.json(product);
 });
 
+app.get('/api/v1/query', (req, res)=> {
+    const {search, limit} = req.query;
+    let sortedProds = [...products];
+
+    if(search) {
+        sortedProds = sortedProds.filter((item)=> {
+            return item.name.startsWith(search);
+            // return item.name === search;
+        }); 
+    };
+
+    if(limit) {
+        sortedProds = sortedProds.slice(0, Number(limit));
+    };
+
+    if(sortedProds.length < 1) {
+        return res.status(200).send('no matches were found');
+    };
+
+    res.status(200).json(sortedProds);
+});
+
 
 
 app.listen(5000, ()=> {
