@@ -1,58 +1,29 @@
 const express = require('express');
 
-const {products} = require('./data.js');
+const {people} = require('./data');
+
 
 const app = express();
 
-const homePage = `
-                    <h1>Home Page</h1>
-                    <a href='/api/products'>Products</a>
-`;
+app.use(express.static('./methods-public'));
+app.use(express.urlencoded({extended: false}));
 
-app.get('/', (req, res)=> {
-    res.send(homePage)
+app.get('/api/v1/people', (req, res)=> {
+    res.status(200).send({success: true, data: people});
 });
 
-app.get('/api/products', (req, res)=> {
-    const newProds = products.map((item)=> {
-        const {id, name} = item;
-        return {id, name};
-    });
-    res.json(newProds);
+app.post('/login', (req, res)=> {
+    const {name} = req.body; 
+
+    if(!name) return res.send('<p>Please enter your name</p>');
+
+    if(people.find((item)=> item.name === name)) {
+        res.status(200).send(`<p>Welcome ${name}</p>`);
+    }
+
+    else {
+        res.send(`<p>Sorry ${name}, your name is not in the list</p>`)
+    }
 });
 
-
-app.get('/api/products/:productID', (req, res)=> {
-    const {productID} = req.params;
-    const product = products.find((item)=> item.id === Number(productID));
-    if(!product) return res.status(404).send('<h1>Product Does Not Exist</h1>');
-    res.json(product);
-});
-
-app.get('/api/v1/query', (req, res)=> {
-    const {search, limit} = req.query;
-    let sortedProds = [...products];
-
-    if(search) {
-        sortedProds = sortedProds.filter((item)=> {
-            return item.name.startsWith(search);
-            // return item.name === search;
-        }); 
-    };
-
-    if(limit) {
-        sortedProds = sortedProds.slice(0, Number(limit));
-    };
-
-    if(sortedProds.length < 1) {
-        return res.status(200).send('no matches were found');
-    };
-
-    res.status(200).json(sortedProds);
-});
-
-
-
-app.listen(5000, ()=> {
-    console.log('server is listening on 5000');
-});
+app.listen(5000, ()=> console.log('server listens on 5000'));
